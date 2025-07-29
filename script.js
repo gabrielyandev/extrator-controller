@@ -1,4 +1,4 @@
-// script.js (Versão para Excel - Muito mais simples)
+// script.js (Versão com Download de Excel)
 
 document.addEventListener("DOMContentLoaded", () => {
   // --- CONFIGURAÇÃO E ELEMENTOS DO DOM ---
@@ -66,14 +66,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const firstSheetName = workbook.SheetNames[0];
       const worksheet = workbook.Sheets[firstSheetName];
-
-      // Converte a folha de cálculo numa lista de objetos (JSON)
-      // Cada linha do excel torna-se um objeto.
       const allRows = XLSX.utils.sheet_to_json(worksheet);
 
-      // Filtra os dados - muito mais simples!
       const positiveSuggestions = allRows.filter((row) => {
-        // Verifica se a coluna "Sugestão" existe e se o seu valor é maior que zero
         return row["Sugestão"] && parseFloat(row["Sugestão"]) > 0;
       });
 
@@ -106,6 +101,7 @@ document.addEventListener("DOMContentLoaded", () => {
     title.textContent = "Resultados da Extração";
 
     const table = document.createElement("table");
+    table.id = "results-table";
     table.innerHTML = `
             <thead>
                 <tr>
@@ -132,33 +128,53 @@ document.addEventListener("DOMContentLoaded", () => {
                   .join("")}
             </tbody>
         `;
+    
+    const buttonsContainer = document.createElement("div");
+    buttonsContainer.className = "download-buttons-container";
 
-    const downloadButton = document.createElement("button");
-    downloadButton.className = "download-button";
-    downloadButton.innerHTML = `<span class="material-symbols-outlined">download</span> Baixar CSV`;
-    downloadButton.onclick = () => downloadCSV(data);
+    // Botão para Baixar CSV
+    const downloadCsvButton = document.createElement("button");
+    downloadCsvButton.className = "download-button";
+    downloadCsvButton.innerHTML = `<span class="material-symbols-outlined">download</span> Baixar CSV`;
+    downloadCsvButton.onclick = () => downloadCSV(data);
+
+    // Botão para Baixar Excel
+    const downloadExcelButton = document.createElement("button");
+    downloadExcelButton.className = "download-button excel";
+    downloadExcelButton.innerHTML = `<span class="material-symbols-outlined">table_view</span> Baixar Excel`;
+    downloadExcelButton.onclick = () => downloadExcel(data);
+
+    buttonsContainer.appendChild(downloadCsvButton);
+    buttonsContainer.appendChild(downloadExcelButton);
 
     resultSection.appendChild(title);
     resultSection.appendChild(table);
-    resultSection.appendChild(downloadButton);
+    resultSection.appendChild(buttonsContainer);
   }
 
+  // --- FUNÇÕES DE DOWNLOAD ---
   function downloadCSV(data) {
-    // Converte os dados para o formato de CSV
-    const csvData = XLSX.utils.json_to_sheet(data);
-    const csvOutput = XLSX.utils.sheet_to_csv(csvData, { separator: ";" });
-
-    const blob = new Blob(["\uFEFF" + csvOutput], {
-      type: "text/csv;charset=utf-8;",
-    });
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const csvOutput = XLSX.utils.sheet_to_csv(worksheet, { separator: ";" });
+    const blob = new Blob(["\uFEFF" + csvOutput], { type: "text/csv;charset=utf-8;" });
     const link = document.createElement("a");
     const url = URL.createObjectURL(blob);
-
     link.setAttribute("href", url);
     link.setAttribute("download", "sugestoes_positivas.csv");
     document.body.appendChild(link);
-
     link.click();
     document.body.removeChild(link);
+  }
+
+  function downloadExcel(data) {
+    // Cria uma nova planilha a partir dos nossos dados JSON
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    // Cria um novo livro (arquivo excel)
+    const workbook = XLSX.utils.book_new();
+    // Adiciona a nossa planilha ao livro, com o nome "Sugestoes"
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Sugestoes");
+
+    // Gera o arquivo .xlsx e inicia o download
+    XLSX.writeFile(workbook, "sugestoes_positivas.xlsx");
   }
 });
