@@ -69,7 +69,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const allRows = XLSX.utils.sheet_to_json(worksheet);
 
       const positiveSuggestions = allRows.filter((row) => {
-        return row["Sugestão"] && parseFloat(row["Sugestão"]) > 0;
+        return row["Sugestão"] && parseFloat(row["Sugestão"]) < 0;
       });
 
       displayResults(positiveSuggestions);
