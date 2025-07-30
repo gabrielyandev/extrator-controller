@@ -1,5 +1,3 @@
-// script.js (Versão com Download de Excel)
-
 document.addEventListener("DOMContentLoaded", () => {
   // --- CONFIGURAÇÃO E ELEMENTOS DO DOM ---
   const uploadArea = document.getElementById("upload-area");
